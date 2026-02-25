@@ -82,7 +82,7 @@ begin
 
 	#Define kinetic and potential energy
 	T = (1/2) * m * ( L^2 * (D(θ))^2 + Ω^2 * (ω + L * sin(θ))^2 )
-	V = m * g * L * (1 - *cos(θ))
+	V = m * g * L * (1 - cos(θ))
 
 	#Lagrangian
 	Lag = T - V
@@ -2986,3 +2986,55 @@ version = "1.13.0+0"
 # ╠═2f62cccb-2713-4078-a0b7-b795f2c44fde
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
+
+
+begin
+    # Compute partial derivatives
+    dL_dθdot = expand_derivatives(Symbolics.derivative(Lag, D(θ)))
+    dL_dθ    = expand_derivatives(Symbolics.derivative(Lag, θ))
+
+    # Time derivative of ∂L/∂θ̇
+    ddt_dL_dθdot = expand_derivatives(D(dL_dθdot))
+
+    # Euler‑Lagrange equation
+    EL_eq = simplify(ddt_dL_dθdot - dL_dθ)
+
+    # Solve for θ̈
+    θ̈_expr = Symbolics.solve_for(EL_eq ~ 0, D(D(θ)))
+
+    # Create a function that evaluates θ̈ given (θ, θ̇, Ω)
+    # The symbolic parameters m, L, g, ω are constants here.
+    θ̈_func = eval(build_function(θ̈_expr, [θ, D(θ), Ω], expression=Val(false)))
+end
+
+### 7. Set numerical parameters (SI units)
+g_val = 9.81      # m/s²
+m_val = 0.1       # kg
+L_val = 0.15      # m
+w1_val = 0.1      # m (this is ω in the symbolic code)
+# Ω will be set separately
+
+# Define a closure that passes the constant parameters to θ̈_func
+acceleration(θ, θ̇, Ω) = θ̈_func(θ, θ̇, Ω)
+
+### 8. Set up the ODE system
+using OrdinaryDiffEq 
+
+function pendulum!(du, u, p, t)
+    θ, θ̇ = u
+    Ω_val = p[1]
+    du[1] = θ̇
+    du[2] = acceleration(θ, θ̇, Ω_val)
+end
+
+# Initial conditions: release from 30° with zero initial angular velocity
+θ0 = deg2rad(30)
+θ̇0 = 0.0
+u0 = [θ0, θ̇0]
+tspan = (0.0, 5.0)   # simulate 5 seconds
+
+### 9. Slow rotation speed
+Ω_slow = 1.9        # rad/s, much slower than natural frequency ≈ 8.1 rad/s
+prob_slow = ODEProblem(pendulum!, u0, tspan, [Ω_slow])
+sol_slow = solve(prob_slow, Tsit5())
+

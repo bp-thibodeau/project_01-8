@@ -61,7 +61,7 @@ T = \frac{1}{2}m \left[ \mathbf{v}' + \mathbf{v}_{rot} \right]
 The potential energy of the pendulum depends on gravity, which depends on the height of the mass. The rotating frame has no impact on the height. Therefore, the potential energy is the same as with a simple pendulum:
 
 ```math
-V = \left( h_1 - \mathbf{r}' \cdot \hat{z}' \right) mg = \left( h_1 - L \cos(\theta) \right) mg = mg \left( h_1 - L \cos(\theta) \right)
+V = \left( L - \mathbf{r}' \cdot \hat{z}' \right) mg = \left( L - L \cos(\theta) \right) mg = mgL \left( 1 - \cos(\theta) \right)
 ```
 
 
@@ -69,20 +69,20 @@ V = \left( h_1 - \mathbf{r}' \cdot \hat{z}' \right) mg = \left( h_1 - L \cos(\th
 The Lagrange equation $L = T - V$ uses the defintions of kinetic and potential energy defined above.
 
 ```math
-L = \frac{1}{2}m \left[ L^2 \dot{\theta}^2 + \Omega^2 \left( \omega_1 +  L \sin(\theta)\right)^2 \right] - mg \left( h_1 - L \cos(\theta) \right)
+L = \frac{1}{2}m \left[ L^2 \dot{\theta}^2 + \Omega^2 \left( \omega_1 +  L \sin(\theta)\right)^2 \right] - mgL \left( 1 - \cos(\theta) \right)
 ```
 
 """
 
 # ╔═╡ c05524ce-441e-4935-b248-45061473cbe1
 begin
-	@variables t m L g Ω ω h
+	@variables t m L g Ω ω
 	@variables θ(t)
 	D = Differential(t)
 
 	#Define kinetic and potential energy
 	T = (1/2) * m * ( L^2 * (D(θ))^2 + Ω^2 * (ω + L * sin(θ))^2 )
-	V = m * g * (h - L *cos(θ))
+	V = m * g * L * (1 - *cos(θ))
 
 	#Lagrangian
 	Lag = T - V

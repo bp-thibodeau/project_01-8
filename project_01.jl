@@ -82,7 +82,7 @@ begin
 
 	#Define kinetic and potential energy
 	T = (1/2) * m * ( L^2 * (D(θ))^2 + Ω^2 * (ω + L * sin(θ))^2 )
-	V = m * g * L * (1 - *cos(θ))
+	V = m * g * L * (1 - cos(θ))
 
 	#Lagrangian
 	Lag = T - V
@@ -2986,3 +2986,20 @@ version = "1.13.0+0"
 # ╠═2f62cccb-2713-4078-a0b7-b795f2c44fde
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
+
+
+begin
+    # Compute partial derivatives
+    dL_dθdot = expand_derivatives(Symbolics.derivative(Lag, D(θ)))
+    dL_dθ    = expand_derivatives(Symbolics.derivative(Lag, θ))
+
+    # Time derivative of ∂L/∂θ̇
+    ddt_dL_dθdot = expand_derivatives(D(dL_dθdot))
+
+    # Euler‑Lagrange equation
+    EL_eq = simplify(ddt_dL_dθdot - dL_dθ)
+
+    # Solve for θ̈
+    θ̈_expr = Symbolics.solve_for(EL_eq ~ 0, D(D(θ)))
+end
+
